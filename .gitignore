@@ -1,0 +1,19 @@
+# macOS
+**/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Dev build
+build/
+tmp/
+vendor/
+
+# Test
+*.out
+*.http
+
+# Environment variables
+.env
+config.yml
