@@ -31,6 +31,8 @@ run: build
 
 docker.run: docker.network docker.chi
 
+docker.dev: docker.network docker.chi.dev
+
 docker.network:
 	docker network inspect dev-network >/dev/null 2>&1 || \
 	docker network create -d bridge dev-network
@@ -42,6 +44,13 @@ docker.chi: docker.chi.build
 	docker run --rm -d \
 		--name gochi \
 		--network dev-network \
+		-p 8000:8000 \
+		chi
+
+docker.chi.dev: docker.chi.build
+	docker run --rm -d \
+		--name gochi \
+		--network host \
 		-p 8000:8000 \
 		chi
 
