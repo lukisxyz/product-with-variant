@@ -20,8 +20,7 @@ CREATE TABLE Product (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2),
-    category_id BYTEA,
-    image_prev BYTEA,
+    image_preview BYTEA,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
@@ -33,6 +32,15 @@ CREATE TABLE Variant (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE Product_Category (
+    product_category_id BYTEA PRIMARY KEY,
+    product_id BYTEA,
+    category_id BYTEA,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP

@@ -4,11 +4,13 @@ import (
 	"context"
 	"flukis/product/cmd"
 	"flukis/product/config"
+	"flukis/product/internals/product"
 	"flukis/product/internals/product_attributes"
 	"flukis/product/internals/product_categories"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
@@ -49,13 +51,30 @@ func main() {
 	)
 	categoryRouter := product_categories.NewRouter(categorySvc)
 
+	// attr
+	productRepo := product.NewRepo(pool)
+	productSvc := product.NewService(
+		productRepo,
+		pool,
+	)
+	productRouter := product.NewRouter(productSvc)
+
 	// Create router.
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	r.Mount("/attribute", attributeRouter.Routes())
 	r.Mount("/category", categoryRouter.Routes())
+	r.Mount("/product", productRouter.Routes())
 
 	// Run server instance.
 	log.Info().Msg("starting up server...")
