@@ -28,7 +28,7 @@ CREATE TABLE Product (
 
 CREATE TABLE Variant (
     variant_id BYTEA PRIMARY KEY,
-    main_product_id BYTEA,
+    main_product_id BYTEA REFERENCES Product(product_id),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2),

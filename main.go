@@ -7,6 +7,7 @@ import (
 	"flukis/product/internals/product"
 	"flukis/product/internals/product_attributes"
 	"flukis/product/internals/product_categories"
+	"flukis/product/internals/product_variant"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -52,6 +53,14 @@ func main() {
 	categoryRouter := product_categories.NewRouter(categorySvc)
 
 	// attr
+	productVariantRepo := product_variant.NewRepo(pool)
+	productVariantSvc := product_variant.NewService(
+		productVariantRepo,
+		pool,
+	)
+	productVariantRouter := product_variant.NewRouter(productVariantSvc)
+
+	// attr
 	productRepo := product.NewRepo(pool)
 	productSvc := product.NewService(
 		productRepo,
@@ -75,6 +84,7 @@ func main() {
 	r.Mount("/attribute", attributeRouter.Routes())
 	r.Mount("/category", categoryRouter.Routes())
 	r.Mount("/product", productRouter.Routes())
+	r.Mount("/variant", productVariantRouter.Routes())
 
 	// Run server instance.
 	log.Info().Msg("starting up server...")

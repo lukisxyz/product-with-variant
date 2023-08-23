@@ -1,9 +1,7 @@
-package product
+package product_variant
 
 import (
 	"encoding/json"
-	"errors"
-	"flukis/product/utils/helper"
 	"flukis/product/utils/resp"
 	"net/http"
 	"strconv"
@@ -28,17 +26,16 @@ func NewRouter(
 func (r *Router) Routes() *chi.Mux {
 	route := chi.NewMux()
 
-	route.Post("/", r.CreateProductHandler)
-	route.Post("/upload-image/{id}", r.UploadProductImageHandler)
-	route.Get("/{id}", r.GetProductOneByIDHandler)
-	route.Get("/", r.GetProductsHandler)
-	route.Patch("/{id}", r.UpdateDataProductHandler)
-	route.Delete("/{id}", r.DeleteProductHandler)
+	route.Post("/", r.CreateVariantHandler)
+	route.Get("/{id}", r.GetVariantOneByIDHandler)
+	route.Get("/", r.GetVariantsHandler)
+	route.Patch("/{id}", r.UpdateDataVariantHandler)
+	route.Delete("/{id}", r.DeleteVariantHandler)
 
 	return route
 }
 
-func (r *Router) DeleteProductHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) DeleteVariantHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	categoryId := chi.URLParam(req, "id")
 	id, err := ulid.Parse(categoryId)
@@ -48,7 +45,7 @@ func (r *Router) DeleteProductHandler(w http.ResponseWriter, req *http.Request) 
 		}
 		return
 	}
-	err = r.service.DeleteProduct(ctx, id)
+	err = r.service.DeleteVariant(ctx, id)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -56,13 +53,13 @@ func (r *Router) DeleteProductHandler(w http.ResponseWriter, req *http.Request) 
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "delete product name success", http.StatusOK, nil, nil); err != nil {
+	if err = resp.WriteResponse(w, "delete variant name success", http.StatusOK, nil, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) GetProductOneByIDHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) GetVariantOneByIDHandler(w http.ResponseWriter, req *http.Request) {
 	categoryId := chi.URLParam(req, "id")
 	id, err := ulid.Parse(categoryId)
 	if err != nil {
@@ -72,7 +69,7 @@ func (r *Router) GetProductOneByIDHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 	ctx := req.Context()
-	res, err := r.service.GetProductByID(ctx, id)
+	res, err := r.service.GetVariantByID(ctx, id)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -80,13 +77,13 @@ func (r *Router) GetProductOneByIDHandler(w http.ResponseWriter, req *http.Reque
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "get one product success", http.StatusOK, res, nil); err != nil {
+	if err = resp.WriteResponse(w, "get one variant success", http.StatusOK, res, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) GetProductsHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) GetVariantsHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	limitStr := req.URL.Query().Get("limit")
 	limitInt, err := strconv.Atoi(limitStr)
@@ -98,7 +95,7 @@ func (r *Router) GetProductsHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	cursor := req.URL.Query().Get("cursor")
-	res, length, next, err := r.service.GetProductsByCursor(ctx, limitInt, cursor)
+	res, length, next, err := r.service.GetVariantsByCursor(ctx, limitInt, cursor)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -117,13 +114,13 @@ func (r *Router) GetProductsHandler(w http.ResponseWriter, req *http.Request) {
 	metaResp.Next = next
 	metaResp.ThisPage = length
 
-	if err = resp.WriteResponse(w, "get all products success", http.StatusOK, res, metaResp); err != nil {
+	if err = resp.WriteResponse(w, "get all variants success", http.StatusOK, res, metaResp); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) UpdateDataProductHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) UpdateDataVariantHandler(w http.ResponseWriter, req *http.Request) {
 	categoryId := chi.URLParam(req, "id")
 	id, err := ulid.Parse(categoryId)
 	if err != nil {
@@ -140,9 +137,10 @@ func (r *Router) UpdateDataProductHandler(w http.ResponseWriter, req *http.Reque
 	}
 	ctx := req.Context()
 	var input struct {
-		Name        string  `json:"name"`
-		Description string  `json:"desc"`
-		Price       float64 `json:"price"`
+		Name          string    `json:"name"`
+		Description   string    `json:"desc"`
+		Price         float64   `json:"price"`
+		MainProductId ulid.ULID `json:"main_id"`
 	}
 	decoder := json.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
@@ -153,7 +151,7 @@ func (r *Router) UpdateDataProductHandler(w http.ResponseWriter, req *http.Reque
 		}
 		return
 	}
-	res, err := r.service.UpdateDataProduct(ctx, id, input.Name, input.Description, input.Price)
+	res, err := r.service.UpdateDataVariant(ctx, id, input.Name, input.Description, input.Price, input.MainProductId)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -161,13 +159,13 @@ func (r *Router) UpdateDataProductHandler(w http.ResponseWriter, req *http.Reque
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "update Product success", http.StatusOK, res, nil); err != nil {
+	if err = resp.WriteResponse(w, "update variant success", http.StatusOK, res, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) CreateProductHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) CreateVariantHandler(w http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
 		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
 			return
@@ -176,9 +174,10 @@ func (r *Router) CreateProductHandler(w http.ResponseWriter, req *http.Request) 
 	}
 	ctx := req.Context()
 	var input struct {
-		Name        string  `json:"name"`
-		Description string  `json:"desc"`
-		Price       float64 `json:"price"`
+		Name          string    `json:"name"`
+		Description   string    `json:"desc"`
+		Price         float64   `json:"price"`
+		MainProductId ulid.ULID `json:"main_id"`
 	}
 	decoder := json.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
@@ -189,7 +188,7 @@ func (r *Router) CreateProductHandler(w http.ResponseWriter, req *http.Request) 
 		}
 		return
 	}
-	res, err := r.service.CreateProduct(ctx, input.Name, input.Description, input.Price)
+	res, err := r.service.CreateVariant(ctx, input.Name, input.Description, input.Price, input.MainProductId)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -197,44 +196,7 @@ func (r *Router) CreateProductHandler(w http.ResponseWriter, req *http.Request) 
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "create Product success", http.StatusCreated, res, nil); err != nil {
-		log.Error().Err(err)
-		return
-	}
-}
-
-func (r *Router) UploadProductImageHandler(w http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		if err := resp.WriteError(w, http.StatusMethodNotAllowed, errors.New("method not allowed")); err != nil {
-			return
-		}
-		return
-	}
-	productId := chi.URLParam(req, "id")
-	id, err := ulid.Parse(productId)
-	if err != nil {
-		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
-			return
-		}
-		return
-	}
-	ctx := req.Context()
-	imageData, err := helper.UploadImageHandler(req)
-	if err != nil {
-		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
-			return
-		}
-		return
-	}
-	res, err := r.service.UpdateImageProduct(ctx, id, imageData)
-	if err != nil {
-		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
-			log.Error().Err(err)
-			return
-		}
-		return
-	}
-	if err = resp.WriteResponse(w, "create Product success", http.StatusCreated, res, nil); err != nil {
+	if err = resp.WriteResponse(w, "create variant success", http.StatusCreated, res, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
