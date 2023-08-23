@@ -1,4 +1,4 @@
-package product_categories
+package category
 
 import (
 	"context"
@@ -84,7 +84,7 @@ func (*repo) SaveWithTransaction(ctx context.Context, tx pgx.Tx, cat *domain.Cat
 		INSERT INTO category
 			(category_id, name, description, created_at)
 		VALUES
-			($1, $2, $3, $5)
+			($1, $2, $3, $4)
 	`
 	if _, err := tx.Exec(
 		ctx,

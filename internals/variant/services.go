@@ -1,4 +1,4 @@
-package product_variant
+package variant
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package product_attributes
+package category
 
 import (
 	"encoding/json"
@@ -26,16 +26,16 @@ func NewRouter(
 func (r *Router) Routes() *chi.Mux {
 	route := chi.NewMux()
 
-	route.Post("/", r.CreateAttributeHandler)
-	route.Patch("/{id}", r.UpdateAttributeHandler)
-	route.Delete("/{id}", r.DeleteAttributeHandler)
-	route.Get("/{id}", r.GetAttributeOneByIDHandler)
-	route.Get("/", r.GetAttributesHandler)
+	route.Post("/", r.CreateCategoryHandler)
+	route.Patch("/{id}", r.UpdateCategoryHandler)
+	route.Delete("/{id}", r.DeleteCategoryHandler)
+	route.Get("/{id}", r.GetCategoryOneByIDHandler)
+	route.Get("/", r.GetCategorysHandler)
 
 	return route
 }
 
-func (r *Router) CreateAttributeHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) CreateCategoryHandler(w http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
 		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
 			return
@@ -45,6 +45,7 @@ func (r *Router) CreateAttributeHandler(w http.ResponseWriter, req *http.Request
 	ctx := req.Context()
 	var input struct {
 		Name string `json:"name"`
+		Desc string `json:"desc"`
 	}
 	decoder := json.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
@@ -55,7 +56,7 @@ func (r *Router) CreateAttributeHandler(w http.ResponseWriter, req *http.Request
 		}
 		return
 	}
-	res, err := r.service.CreateAttr(ctx, input.Name)
+	res, err := r.service.CreateCategory(ctx, input.Name, input.Desc)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -63,13 +64,13 @@ func (r *Router) CreateAttributeHandler(w http.ResponseWriter, req *http.Request
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "create attribute success", http.StatusCreated, res, nil); err != nil {
+	if err = resp.WriteResponse(w, "create Category success", http.StatusCreated, res, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) UpdateAttributeHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) UpdateCategoryHandler(w http.ResponseWriter, req *http.Request) {
 	categoryId := chi.URLParam(req, "id")
 	id, err := ulid.Parse(categoryId)
 	if err != nil {
@@ -87,6 +88,7 @@ func (r *Router) UpdateAttributeHandler(w http.ResponseWriter, req *http.Request
 	ctx := req.Context()
 	var input struct {
 		Name string `json:"name"`
+		Desc string `json:"desc"`
 	}
 	decoder := json.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
@@ -97,7 +99,7 @@ func (r *Router) UpdateAttributeHandler(w http.ResponseWriter, req *http.Request
 		}
 		return
 	}
-	res, err := r.service.UpdateNameAttr(ctx, id, input.Name)
+	res, err := r.service.UpdateCategory(ctx, id, input.Name, input.Desc)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -105,13 +107,13 @@ func (r *Router) UpdateAttributeHandler(w http.ResponseWriter, req *http.Request
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "update attribute name success", http.StatusOK, res, nil); err != nil {
+	if err = resp.WriteResponse(w, "update Category name success", http.StatusOK, res, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) DeleteAttributeHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) DeleteCategoryHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	categoryId := chi.URLParam(req, "id")
 	id, err := ulid.Parse(categoryId)
@@ -121,7 +123,7 @@ func (r *Router) DeleteAttributeHandler(w http.ResponseWriter, req *http.Request
 		}
 		return
 	}
-	err = r.service.DeleteAttr(ctx, id)
+	err = r.service.DeleteCategory(ctx, id)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -129,13 +131,13 @@ func (r *Router) DeleteAttributeHandler(w http.ResponseWriter, req *http.Request
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "delete attribute name success", http.StatusOK, nil, nil); err != nil {
+	if err = resp.WriteResponse(w, "delete Category name success", http.StatusOK, nil, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) GetAttributeOneByIDHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) GetCategoryOneByIDHandler(w http.ResponseWriter, req *http.Request) {
 	categoryId := chi.URLParam(req, "id")
 	id, err := ulid.Parse(categoryId)
 	if err != nil {
@@ -145,7 +147,7 @@ func (r *Router) GetAttributeOneByIDHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 	ctx := req.Context()
-	res, err := r.service.GetAttrById(ctx, id)
+	res, err := r.service.GetCategoryById(ctx, id)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -153,13 +155,13 @@ func (r *Router) GetAttributeOneByIDHandler(w http.ResponseWriter, req *http.Req
 		}
 		return
 	}
-	if err = resp.WriteResponse(w, "get one attribute success", http.StatusOK, res, nil); err != nil {
+	if err = resp.WriteResponse(w, "get one Category success", http.StatusOK, res, nil); err != nil {
 		log.Error().Err(err)
 		return
 	}
 }
 
-func (r *Router) GetAttributesHandler(w http.ResponseWriter, req *http.Request) {
+func (r *Router) GetCategorysHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	limitStr := req.URL.Query().Get("limit")
 	limitInt, err := strconv.Atoi(limitStr)
@@ -171,7 +173,7 @@ func (r *Router) GetAttributesHandler(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 	cursor := req.URL.Query().Get("cursor")
-	res, length, next, err := r.service.GetAttrByCursor(ctx, limitInt, cursor)
+	res, length, next, err := r.service.GetCategoryByCursor(ctx, limitInt, cursor)
 	if err != nil {
 		if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 			log.Error().Err(err)
@@ -190,7 +192,7 @@ func (r *Router) GetAttributesHandler(w http.ResponseWriter, req *http.Request) 
 	metaResp.Next = next
 	metaResp.ThisPage = length
 
-	if err = resp.WriteResponse(w, "get all attribute success", http.StatusOK, res, metaResp); err != nil {
+	if err = resp.WriteResponse(w, "get all Category success", http.StatusOK, res, metaResp); err != nil {
 		log.Error().Err(err)
 		return
 	}

@@ -30,12 +30,67 @@ func (r *Router) Routes() *chi.Mux {
 
 	route.Post("/", r.CreateProductHandler)
 	route.Post("/upload-image/{id}", r.UploadProductImageHandler)
+	route.Patch("/category/{id}", r.UpdateCategoryProductHandler)
 	route.Get("/{id}", r.GetProductOneByIDHandler)
 	route.Get("/", r.GetProductsHandler)
 	route.Patch("/{id}", r.UpdateDataProductHandler)
 	route.Delete("/{id}", r.DeleteProductHandler)
 
 	return route
+}
+
+func (r *Router) UpdateCategoryProductHandler(w http.ResponseWriter, req *http.Request) {
+	categoryId := chi.URLParam(req, "id")
+	id, err := ulid.Parse(categoryId)
+	if err != nil {
+		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
+			return
+		}
+		return
+	}
+	if err := req.ParseForm(); err != nil {
+		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
+			return
+		}
+		return
+	}
+	ctx := req.Context()
+	var input struct {
+		CategoryIds []ulid.ULID `json:"category"`
+		Action      bool        `json:"add"`
+	}
+	decoder := json.NewDecoder(req.Body)
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&input)
+	if err != nil {
+		if err = resp.WriteError(w, http.StatusBadRequest, err); err != nil {
+			return
+		}
+		return
+	}
+	if input.Action {
+		err = r.service.UpdateCategoryProduct(ctx, id, input.CategoryIds)
+		if err != nil {
+			if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
+				log.Error().Err(err)
+				return
+			}
+			return
+		}
+	} else {
+		err = r.service.DeleteCategoryProductBatch(ctx, id, input.CategoryIds)
+		if err != nil {
+			if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
+				log.Error().Err(err)
+				return
+			}
+			return
+		}
+	}
+	if err = resp.WriteResponse(w, "update category to product success", http.StatusOK, nil, nil); err != nil {
+		log.Error().Err(err)
+		return
+	}
 }
 
 func (r *Router) DeleteProductHandler(w http.ResponseWriter, req *http.Request) {

@@ -4,10 +4,11 @@ import (
 	"context"
 	"flukis/product/cmd"
 	"flukis/product/config"
+	"flukis/product/internals/attribute"
+	"flukis/product/internals/category"
 	"flukis/product/internals/product"
-	"flukis/product/internals/product_attributes"
-	"flukis/product/internals/product_categories"
-	"flukis/product/internals/product_variant"
+	"flukis/product/internals/product_category"
+	"flukis/product/internals/variant"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -37,33 +38,35 @@ func main() {
 	}
 
 	// attr
-	attributeRepo := product_attributes.NewRepo(pool)
-	attributeSvc := product_attributes.NewService(
+	attributeRepo := attribute.NewRepo(pool)
+	attributeSvc := attribute.NewService(
 		attributeRepo,
 		pool,
 	)
-	attributeRouter := product_attributes.NewRouter(attributeSvc)
+	attributeRouter := attribute.NewRouter(attributeSvc)
 
 	// attr
-	categoryRepo := product_categories.NewRepo(pool)
-	categorySvc := product_categories.NewService(
+	categoryRepo := category.NewRepo(pool)
+	categorySvc := category.NewService(
 		categoryRepo,
 		pool,
 	)
-	categoryRouter := product_categories.NewRouter(categorySvc)
+	categoryRouter := category.NewRouter(categorySvc)
 
 	// attr
-	productVariantRepo := product_variant.NewRepo(pool)
-	productVariantSvc := product_variant.NewService(
+	productVariantRepo := variant.NewRepo(pool)
+	productVariantSvc := variant.NewService(
 		productVariantRepo,
 		pool,
 	)
-	productVariantRouter := product_variant.NewRouter(productVariantSvc)
+	productVariantRouter := variant.NewRouter(productVariantSvc)
 
 	// attr
+	productCategory := product_category.NewRepo(pool)
 	productRepo := product.NewRepo(pool)
 	productSvc := product.NewService(
 		productRepo,
+		productCategory,
 		pool,
 	)
 	productRouter := product.NewRouter(productSvc)

@@ -1,4 +1,4 @@
-package product_attributes
+package attribute
 
 import (
 	"context"
