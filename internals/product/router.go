@@ -56,8 +56,8 @@ func (r *Router) UpdateCategoryProductHandler(w http.ResponseWriter, req *http.R
 	}
 	ctx := req.Context()
 	var input struct {
-		CategoryIds []ulid.ULID `json:"category"`
-		Action      bool        `json:"add"`
+		Added   []ulid.ULID `json:"added"`
+		Removed []ulid.ULID `json:"removed"`
 	}
 	decoder := json.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
@@ -68,8 +68,8 @@ func (r *Router) UpdateCategoryProductHandler(w http.ResponseWriter, req *http.R
 		}
 		return
 	}
-	if input.Action {
-		err = r.service.UpdateCategoryProduct(ctx, id, input.CategoryIds)
+	if len(input.Added) > 0 {
+		err = r.service.UpdateCategoryProduct(ctx, id, input.Added)
 		if err != nil {
 			if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 				log.Error().Err(err)
@@ -77,8 +77,9 @@ func (r *Router) UpdateCategoryProductHandler(w http.ResponseWriter, req *http.R
 			}
 			return
 		}
-	} else {
-		err = r.service.DeleteCategoryProductBatch(ctx, id, input.CategoryIds)
+	}
+	if len(input.Removed) > 0 {
+		err = r.service.DeleteCategoryProductBatch(ctx, id, input.Removed)
 		if err != nil {
 			if err = resp.WriteError(w, http.StatusInternalServerError, err); err != nil {
 				log.Error().Err(err)
