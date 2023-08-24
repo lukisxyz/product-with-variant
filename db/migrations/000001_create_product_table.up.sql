@@ -45,23 +45,3 @@ CREATE TABLE Product_Category (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
-
-CREATE TABLE Product_Attribute (
-    product_attribute_id BYTEA PRIMARY KEY,
-    product_id BYTEA,
-    attribute_id BYTEA,
-    value VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    deleted_at TIMESTAMP
-);
-
-CREATE TABLE Variant_Attribute (
-    variant_attribute_id BYTEA PRIMARY KEY,
-    variant_id BYTEA,
-    attribute_id BYTEA,
-    value VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    deleted_at TIMESTAMP
-);
