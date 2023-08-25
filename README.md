@@ -43,4 +43,9 @@ type `make docker.stop` to clear the docker that build from previous command
 ## How To Use This Project
 The function is already done but use with your enhancement.
 
+## API Documentation
+- [https://documenter.getpostman.com/view/12956913/2s9Y5WyjRF](https://documenter.getpostman.com/view/12956913/2s9Y5WyjRF)
+- [https://documenter.getpostman.com/view/12956913/2s9Y5WyjRG](https://documenter.getpostman.com/view/12956913/2s9Y5WyjRG)
+- [https://documenter.getpostman.com/view/12956913/2s9Y5WyjRH](https://documenter.getpostman.com/view/12956913/2s9Y5WyjRH)
+
 ## Thank you
